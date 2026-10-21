@@ -19,7 +19,11 @@ The binary is placed in `~/go/bin` (or `$GOBIN`, if set), and that directory **m
 echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc
 ```
 
-Open a new terminal (or run `source ~/.zshrc`) and check with `tt`. If you are unsure where Go installs binaries, run `go env GOBIN GOPATH`: the binary goes in `GOBIN` when it is set, otherwise in `GOPATH/bin`.
+Open a new terminal (or run `source ~/.zshrc`) and check with `tt`. `go install` prints nothing when it succeeds, apart from download messages.
+
+If `tt` is not found, find where Go put it with `go env GOBIN GOPATH`: the binary goes in `GOBIN` when it is set, otherwise in `GOPATH/bin`. Make sure that directory is in your `PATH`.
+
+**asdf users:** the asdf Go plugin sets `GOBIN` to a directory inside the installed Go version, which is not in your `PATH`. Run `asdf reshim golang` after installing so asdf creates the `tt` shim, and run `go install` again after switching Go versions.
 
 To update, run the same `go install` command again. To uninstall, delete `~/go/bin/tt`.
 
