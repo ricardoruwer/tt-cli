@@ -10,11 +10,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const DefaultBaseURL = "https://ttrack.top"
+const BaseURL = "https://ttrack.top"
 
 type Config struct {
-	Token   string `toml:"token"`
-	BaseURL string `toml:"base_url"`
+	Token string `toml:"token"`
 }
 
 // Path returns the config file location, honouring XDG_CONFIG_HOME.
@@ -53,9 +52,6 @@ func Load() (cfg Config, warning string, err error) {
 
 	if t := os.Getenv("TT_TOKEN"); t != "" {
 		cfg.Token = t
-	}
-	if cfg.BaseURL == "" {
-		cfg.BaseURL = DefaultBaseURL
 	}
 	return cfg, warning, nil
 }

@@ -31,7 +31,6 @@ Create `~/.config/tt/config.toml` (or `$XDG_CONFIG_HOME/tt/config.toml`) with yo
 mkdir -p ~/.config/tt
 cat > ~/.config/tt/config.toml <<'EOF'
 token = "<your token>"
-# base_url = "https://ttrack.top"
 EOF
 chmod 600 ~/.config/tt/config.toml
 ```

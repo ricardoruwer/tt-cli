@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := api.New(cfg.BaseURL, cfg.Token)
+	client := api.New(config.BaseURL, cfg.Token)
 	if _, err := tea.NewProgram(ui.New(client, time.Now())).Run(); err != nil {
 		fmt.Fprintln(os.Stderr, "tt:", err)
 		os.Exit(1)
