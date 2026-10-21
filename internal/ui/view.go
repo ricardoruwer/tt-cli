@@ -257,7 +257,7 @@ func (m Model) detailLines() []string {
 		add(items)
 	}
 
-	add(entry.Lines())
+	section("Description", entry.Lines())
 	section("Code Reviews", entry.CodeReviewList())
 	section("Deploys", entry.DeployList())
 	if len(out) == 0 {

@@ -53,7 +53,7 @@ func TestDetailShowsCodeReviewsAndDeploys(t *testing.T) {
 	m.selected = 9
 	m.detail = true
 	out := ansi.Strip(m.render())
-	for _, want := range []string{"Code Reviews", "VIRT-3698", "Deploys"} {
+	for _, want := range []string{"Description", "Code Reviews", "VIRT-3698", "Deploys"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("detail view missing %q:\n%s", want, out)
 		}
