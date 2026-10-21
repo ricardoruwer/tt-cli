@@ -35,15 +35,16 @@ type Model struct {
 }
 
 func New(client *api.Client, now time.Time) Model {
-	return Model{
-		client:   client,
-		year:     now.Year(),
-		month:    now.Month(),
-		today:    now,
-		selected: now.Day(),
-		byDay:    map[int]model.Entry{},
-		loading:  true,
+	m := Model{
+		client:  client,
+		year:    now.Year(),
+		month:   now.Month(),
+		today:   now,
+		byDay:   map[int]model.Entry{},
+		loading: true,
 	}
+	m.selected = m.nearestWeekday(now.Day())
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
@@ -112,9 +113,9 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 	case "q":
 		return m, tea.Quit
 	case "h", "left":
-		m.move(-1)
+		m.stepWeekday(-1)
 	case "l", "right":
-		m.move(1)
+		m.stepWeekday(1)
 	case "k", "up":
 		m.move(-7)
 	case "j", "down":
@@ -123,7 +124,7 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 		m.detail, m.scroll = true, 0
 	case "t":
 		if m.today.Year() == m.year && m.today.Month() == m.month {
-			m.selected = m.today.Day()
+			m.selected = m.nearestWeekday(m.today.Day())
 		}
 	case "r":
 		m.loading, m.err = true, nil
@@ -132,9 +133,48 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) move(delta int) {
+func (m Model) isWeekend(day int) bool {
+	return calendar.IsWeekend(time.Date(m.year, m.month, day, 0, 0, 0, 0, time.UTC))
+}
+
+// nearestWeekday returns day, or the closest earlier weekday when it falls on a
+// weekend.
+func (m Model) nearestWeekday(day int) int {
+	for day > 1 && m.isWeekend(day) {
+		day--
+	}
+	if m.isWeekend(day) {
+		return m.firstWeekday()
+	}
+	return day
+}
+
+func (m Model) firstWeekday() int {
+	day := 1
+	for m.isWeekend(day) {
+		day++
+	}
+	return day
+}
+
+// stepWeekday moves the selection to the adjacent weekday, staying put at the
+// edges of the month.
+func (m *Model) stepWeekday(dir int) {
 	last := calendar.DaysInMonth(m.year, m.month)
-	m.selected = min(max(m.selected+delta, 1), last)
+	for d := m.selected + dir; d >= 1 && d <= last; d += dir {
+		if !m.isWeekend(d) {
+			m.selected = d
+			return
+		}
+	}
+}
+
+// move jumps by whole weeks, so the selection stays on the same weekday; it
+// does nothing when the target is outside the month.
+func (m *Model) move(delta int) {
+	if d := m.selected + delta; d >= 1 && d <= calendar.DaysInMonth(m.year, m.month) {
+		m.selected = d
+	}
 }
 
 func (m *Model) clampScroll() {

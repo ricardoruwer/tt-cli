@@ -7,6 +7,17 @@ type Day struct {
 	InMonth bool
 }
 
+// IsWeekend reports whether t falls on a Saturday or Sunday.
+func IsWeekend(t time.Time) bool {
+	return t.Weekday() == time.Saturday || t.Weekday() == time.Sunday
+}
+
+// Active reports whether the day can be selected: it belongs to the displayed
+// month and is not a weekend.
+func (d Day) Active() bool {
+	return d.InMonth && !IsWeekend(d.Date)
+}
+
 // Weeks returns the month as full Sunday-to-Saturday rows, padded with days
 // from the neighbouring months.
 func Weeks(year int, month time.Month) [][]Day {
@@ -34,9 +45,7 @@ func DaysInMonth(year int, month time.Month) int {
 func WorkingDays(year int, month time.Month) int {
 	n := 0
 	for d := 1; d <= DaysInMonth(year, month); d++ {
-		switch time.Date(year, month, d, 0, 0, 0, 0, time.UTC).Weekday() {
-		case time.Saturday, time.Sunday:
-		default:
+		if !IsWeekend(time.Date(year, month, d, 0, 0, 0, 0, time.UTC)) {
 			n++
 		}
 	}

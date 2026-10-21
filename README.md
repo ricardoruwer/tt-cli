@@ -47,7 +47,7 @@ Run `tt`.
 
 | Key | Action |
 | --- | --- |
-| `h` `j` `k` `l` / arrows | Move the selection |
+| `h` `j` `k` `l` / arrows | Move the selection (weekends are inactive and skipped) |
 | `enter` | Open the details of the selected day |
 | `t` | Jump to today |
 | `r` | Reload from the server |

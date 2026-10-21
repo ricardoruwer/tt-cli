@@ -126,10 +126,11 @@ func (m Model) renderGrid(weeks [][]calendar.Day) string {
 func (m Model) renderCell(day calendar.Day, w, h int) []string {
 	inner := w - 1
 	bg := colBgIn
-	if !day.InMonth {
+	active := day.Active()
+	if !active {
 		bg = colBgOut
 	}
-	selected := day.InMonth && day.Date.Day() == m.selected
+	selected := active && day.Date.Day() == m.selected
 	if selected {
 		bg = colBgSel
 	}
@@ -146,10 +147,10 @@ func (m Model) renderCell(day calendar.Day, w, h int) []string {
 
 	// Day number on the left, time badge on the right.
 	numStyle := base.Foreground(colDim)
-	if day.InMonth {
+	if active {
 		numStyle = base.Foreground(colText)
 	}
-	if day.InMonth && m.isToday(day.Date) {
+	if active && m.isToday(day.Date) {
 		numStyle = lipgloss.NewStyle().Background(colToday).Foreground(lipgloss.Color("#ffffff")).Bold(true)
 	}
 	if selected {
@@ -158,7 +159,7 @@ func (m Model) renderCell(day calendar.Day, w, h int) []string {
 	num := base.Render(" ") + numStyle.Render(fmt.Sprintf(" %02d ", day.Date.Day()))
 
 	entry, hasEntry := model.Entry{}, false
-	if day.InMonth {
+	if active {
 		entry, hasEntry = m.byDay[day.Date.Day()]
 	}
 
