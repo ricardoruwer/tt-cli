@@ -15,10 +15,10 @@ go test ./internal/ui -run TestPrintGrid -v   # prints a rendered grid
 
 - `cmd/tt/main.go` — loads config, builds the API client, runs the Bubble Tea program.
 - `internal/config` — token from `~/.config/tt/config.toml` (honours `XDG_CONFIG_HOME`); `TT_TOKEN` overrides it. Warns when the file is readable by others. `BaseURL` is a hardcoded constant.
-- `internal/api` — `Client.Month(ctx, year, month)`: `GET /api/time-tracking/:year/:month?separated=true` with a Bearer token; response is `{"data": [Entry]}`. 401/403 become a "token rejected" error; the body is capped at 4 MiB.
+- `internal/api` — `Client.Month(ctx, year, month)`: `GET /api/time-tracking/:year/:month?separated=true` with a Bearer token; response is `{"data": [Entry]}`. `Client.Save(ctx, date, Update)`: `PUT /api/time-tracking/:year/:month/:day?separated=true` upserts `time`, `description`, `code_reviews`, `deploys` and returns `{"data": Entry}`; 422 carries `{"errors": {field: [msg]}}`. 401/403 become a "token rejected" error; the body is capped at 4 MiB. Tests use `httptest`, never the real API.
 - `internal/model` — `Entry` and helpers (`Minutes`, `Lines`, `FormatHM`, `IndexByDay`, `TotalMinutes`).
 - `internal/calendar` — pure date math: Sunday-first week grid, `DaysInMonth`, `WorkingDays` (Mon–Fri, holidays ignored).
-- `internal/ui` — `model.go` is state + `Update`/key handling; `view.go` is rendering.
+- `internal/ui` — `model.go` is state + `Update`/key handling; `view.go` is rendering; `edit.go` / `edit_view.go` are the day editor (hand-rolled rune buffers, no `bubbles` dependency).
 
 ## API payload
 
@@ -29,6 +29,7 @@ The API requires auth, so it cannot be explored anonymously.
 ## UI behaviour worth knowing
 
 - Two modes: calendar grid and a per-day detail view (`m.detail`). The grid cell shows only the description lines; the detail view shows description, then "Code Reviews" and "Deploys" sections (a section is omitted when empty).
+- Editing (`e`, from the grid or the detail view) swaps the body for a four-field form (`m.editing`); key presses are routed to `handleEditKey` and typed text comes from `Key().Text`. `ctrl+s` sends `Client.Save`; `savedMsg` replaces the day's entry, and an error keeps the form open with the message.
 - Detail text is word-wrapped to the terminal width, so line count (and scroll clamping) depends on `m.width`; always go through `detailLines()`.
 - Grid rendering must fill the terminal exactly (every line `m.width` wide, `m.height` lines total) — `TestGridFillsTerminalExactly` enforces it. Minimum terminal size is 70x(4 + 3 per week) and a "too small" message is shown below that.
 - Fetches are keyed by year/month; `loadedMsg` for a month other than the current one is dropped.

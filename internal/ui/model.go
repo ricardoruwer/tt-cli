@@ -32,6 +32,9 @@ type Model struct {
 
 	detail bool
 	scroll int
+
+	editing bool
+	edit    editor
 }
 
 func New(client *api.Client, now time.Time) Model {
@@ -77,7 +80,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.byDay = model.IndexByDay(msg.entries, m.year, m.month)
 		}
 
+	case savedMsg:
+		if msg.err != nil {
+			if m.editing {
+				m.edit.saving = false
+				m.edit.err = msg.err.Error()
+			}
+			return m, nil
+		}
+		if msg.year == m.year && msg.month == m.month {
+			m.byDay[msg.day] = msg.entry
+		}
+		m.editing = false
+		m.clampScroll()
+
+	case tea.PasteMsg:
+		return m.handlePaste(msg.String())
+
 	case tea.KeyPressMsg:
+		if m.editing {
+			return m.handleEditKey(msg)
+		}
 		return m.handleKey(msg.String())
 	}
 	return m, nil
@@ -92,6 +115,8 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 		switch key {
 		case "esc", "enter", "q":
 			m.detail, m.scroll = false, 0
+		case "e":
+			return m.startEdit(), nil
 		case "j", "down":
 			m.scroll++
 		case "k", "up":
@@ -122,6 +147,8 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 		m.move(7)
 	case "enter":
 		m.detail, m.scroll = true, 0
+	case "e":
+		return m.startEdit(), nil
 	case "t":
 		if m.today.Year() == m.year && m.today.Month() == m.month {
 			m.selected = m.nearestWeekday(m.today.Day())

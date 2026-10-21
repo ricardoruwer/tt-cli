@@ -54,6 +54,8 @@ func (m Model) render() string {
 
 	var body string
 	switch {
+	case m.editing:
+		body = m.renderEdit()
 	case m.detail:
 		body = m.renderDetail()
 	case m.err != nil:
@@ -63,7 +65,7 @@ func (m Model) render() string {
 	}
 
 	lines := []string{m.renderTitle()}
-	if !m.detail {
+	if !m.detail && !m.editing {
 		lines = append(lines, m.renderWeekdays())
 	} else {
 		lines = append(lines, "")
@@ -222,9 +224,12 @@ func (m Model) renderStats() string {
 }
 
 func (m Model) renderHelp() string {
-	help := "←↓↑→/hjkl move · enter details · t today · r reload · q quit"
-	if m.detail {
-		help = "j/k scroll · space/pgdn page · g/G top/bottom · esc back · ctrl+c quit"
+	help := "←↓↑→/hjkl move · enter details · e edit · t today · r reload · q quit"
+	switch {
+	case m.editing:
+		help = "tab/shift+tab field · ctrl+s save · esc cancel"
+	case m.detail:
+		help = "j/k scroll · space/pgdn page · g/G top/bottom · e edit · esc back · ctrl+c quit"
 	}
 	return lipgloss.NewStyle().Foreground(colDim).Render(help)
 }
