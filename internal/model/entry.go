@@ -36,22 +36,6 @@ func (e Entry) Lines() []string {
 	return lines
 }
 
-// CodeReviewList returns the individual ticket keys of CodeReviews.
-func (e Entry) CodeReviewList() []string { return splitList(e.CodeReviews) }
-
-// DeployList returns the individual ticket keys of Deploys.
-func (e Entry) DeployList() []string { return splitList(e.Deploys) }
-
-func splitList(s string) []string {
-	var items []string
-	for _, item := range strings.Split(s, ",") {
-		if item = strings.TrimSpace(item); item != "" {
-			items = append(items, item)
-		}
-	}
-	return items
-}
-
 // FormatHM renders minutes as H:MM with at least two hour digits ("08:00", "120:00").
 func FormatHM(minutes int) string {
 	return fmt.Sprintf("%02d:%02d", minutes/60, minutes%60)

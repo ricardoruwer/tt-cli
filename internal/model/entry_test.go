@@ -47,13 +47,3 @@ func TestIndexByDayIgnoresOrderAndOtherMonths(t *testing.T) {
 		t.Errorf("TotalMinutes = %d, want 720", got)
 	}
 }
-
-func TestTicketLists(t *testing.T) {
-	e := Entry{CodeReviews: "VIRT-1, PRICE-2 ,", Deploys: ""}
-	if got, want := e.CodeReviewList(), []string{"VIRT-1", "PRICE-2"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("CodeReviewList() = %v, want %v", got, want)
-	}
-	if got := e.DeployList(); len(got) != 0 {
-		t.Errorf("DeployList() = %v, want empty", got)
-	}
-}

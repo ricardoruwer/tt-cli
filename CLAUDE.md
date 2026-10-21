@@ -16,7 +16,7 @@ go test ./internal/ui -run TestPrintGrid -v   # prints a rendered grid
 - `cmd/tt/main.go` — loads config, builds the API client, runs the Bubble Tea program.
 - `internal/config` — token from `~/.config/tt/config.toml` (honours `XDG_CONFIG_HOME`); `TT_TOKEN` overrides it. Warns when the file is readable by others. `BaseURL` is a hardcoded constant.
 - `internal/api` — `Client.Month(ctx, year, month)`: `GET /api/time-tracking/:year/:month?separated=true` with a Bearer token; response is `{"data": [Entry]}`. 401/403 become a "token rejected" error; the body is capped at 4 MiB.
-- `internal/model` — `Entry` and helpers (`Minutes`, `Lines`, `CodeReviewList`, `DeployList`, `FormatHM`, `IndexByDay`, `TotalMinutes`).
+- `internal/model` — `Entry` and helpers (`Minutes`, `Lines`, `FormatHM`, `IndexByDay`, `TotalMinutes`).
 - `internal/calendar` — pure date math: Sunday-first week grid, `DaysInMonth`, `WorkingDays` (Mon–Fri, holidays ignored).
 - `internal/ui` — `model.go` is state + `Update`/key handling; `view.go` is rendering.
 

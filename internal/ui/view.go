@@ -258,8 +258,8 @@ func (m Model) detailLines() []string {
 	}
 
 	section("Description", entry.Lines())
-	section("Code Reviews", entry.CodeReviewList())
-	section("Deploys", entry.DeployList())
+	section("Code Reviews", nonEmpty(entry.CodeReviews))
+	section("Deploys", nonEmpty(entry.Deploys))
 	if len(out) == 0 {
 		return []string{"No details for this day."}
 	}
@@ -288,6 +288,14 @@ func (m Model) renderDetail() string {
 		out = append(out, "")
 	}
 	return strings.Join(out, "\n")
+}
+
+// nonEmpty wraps a trimmed value as a single line, or nothing when it is blank.
+func nonEmpty(s string) []string {
+	if s = strings.TrimSpace(s); s == "" {
+		return nil
+	}
+	return []string{s}
 }
 
 // columnWidths splits the terminal width across 7 columns, giving the
