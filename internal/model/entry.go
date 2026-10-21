@@ -10,6 +10,10 @@ type Entry struct {
 	Date        string `json:"date"`
 	Time        string `json:"time"`
 	Description string `json:"description"`
+	// CodeReviews and Deploys are comma-separated ticket keys; the API sends
+	// null when a day has none, which decodes to "".
+	CodeReviews string `json:"code_reviews"`
+	Deploys     string `json:"deploys"`
 }
 
 // Minutes parses the "HH:MM:SS" time field; malformed values count as zero.
@@ -30,6 +34,22 @@ func (e Entry) Lines() []string {
 		}
 	}
 	return lines
+}
+
+// CodeReviewList returns the individual ticket keys of CodeReviews.
+func (e Entry) CodeReviewList() []string { return splitList(e.CodeReviews) }
+
+// DeployList returns the individual ticket keys of Deploys.
+func (e Entry) DeployList() []string { return splitList(e.Deploys) }
+
+func splitList(s string) []string {
+	var items []string
+	for _, item := range strings.Split(s, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			items = append(items, item)
+		}
+	}
+	return items
 }
 
 // FormatHM renders minutes as H:MM with at least two hour digits ("08:00", "120:00").

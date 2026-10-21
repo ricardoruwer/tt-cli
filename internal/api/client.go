@@ -26,9 +26,11 @@ func New(baseURL, token string) *Client {
 	}
 }
 
-// Month fetches every entry of the given month.
+// Month fetches every entry of the given month. The separated flag makes the
+// API return code reviews and deploys as their own fields instead of folding
+// them into the description.
 func (c *Client) Month(ctx context.Context, year int, month time.Month) ([]model.Entry, error) {
-	url := fmt.Sprintf("%s/api/time-tracking/%d/%d", c.BaseURL, year, int(month))
+	url := fmt.Sprintf("%s/api/time-tracking/%d/%d?separated=true", c.BaseURL, year, int(month))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

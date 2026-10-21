@@ -238,9 +238,30 @@ func (m Model) detailLines() []string {
 		return []string{"No entries for this day."}
 	}
 	wrap := lipgloss.NewStyle().Width(max(m.width-4, 10))
+	heading := lipgloss.NewStyle().Bold(true).Foreground(colDim)
+
 	var out []string
-	for _, l := range entry.Lines() {
-		out = append(out, strings.Split(wrap.Render(l), "\n")...)
+	add := func(lines []string) {
+		for _, l := range lines {
+			out = append(out, strings.Split(wrap.Render(l), "\n")...)
+		}
+	}
+	section := func(title string, items []string) {
+		if len(items) == 0 {
+			return
+		}
+		if len(out) > 0 {
+			out = append(out, "")
+		}
+		out = append(out, heading.Render(title))
+		add(items)
+	}
+
+	add(entry.Lines())
+	section("Code Reviews", entry.CodeReviewList())
+	section("Deploys", entry.DeployList())
+	if len(out) == 0 {
+		return []string{"No details for this day."}
 	}
 	return out
 }
