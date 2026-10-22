@@ -106,3 +106,15 @@ func TestSavedNoticeShowsAndClears(t *testing.T) {
 		t.Error("notice should clear")
 	}
 }
+
+func TestCellHidesBadgeWhenTimeIsNotSet(t *testing.T) {
+	render := func(timeValue string) string {
+		m := sampleModel(280, 40)
+		m.byDay = map[int]model.Entry{21: {Time: timeValue, Description: "- Work"}}
+		return ansi.Strip(m.render())
+	}
+	unset, zero := strings.Count(render(""), "00:00"), strings.Count(render("00:00:00"), "00:00")
+	if zero != unset+1 {
+		t.Errorf("00:00 occurrences: unset=%d zero=%d, want zero = unset+1", unset, zero)
+	}
+}

@@ -170,7 +170,7 @@ func (m Model) renderCell(day calendar.Day, w, h int) []string {
 	}
 
 	head := num
-	if hasEntry {
+	if hasEntry && entry.HasTime() {
 		text := model.FormatHM(entry.Minutes())
 		if inner >= 14 {
 			text = " " + text + " "
@@ -279,7 +279,7 @@ func (m Model) detailLines() []string {
 func (m Model) renderDetail() string {
 	date := time.Date(m.year, m.month, m.selected, 0, 0, 0, 0, time.UTC)
 	title := lipgloss.NewStyle().Bold(true).Render(date.Format("Monday, January 2, 2006"))
-	if e, ok := m.byDay[m.selected]; ok {
+	if e, ok := m.byDay[m.selected]; ok && e.HasTime() {
 		title += "  " + lipgloss.NewStyle().Background(colBadgeBg).Foreground(colBadgeText).Bold(true).
 			Render(" "+model.FormatHM(e.Minutes())+" ")
 	}

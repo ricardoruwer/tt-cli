@@ -16,6 +16,9 @@ type Entry struct {
 	Deploys     string `json:"deploys"`
 }
 
+// HasTime reports whether a time was set; the API sends null for days without one.
+func (e Entry) HasTime() bool { return strings.TrimSpace(e.Time) != "" }
+
 // Minutes parses the "HH:MM:SS" time field; malformed values count as zero.
 func (e Entry) Minutes() int {
 	var h, m, s int

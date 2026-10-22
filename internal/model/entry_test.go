@@ -47,3 +47,12 @@ func TestIndexByDayIgnoresOrderAndOtherMonths(t *testing.T) {
 		t.Errorf("TotalMinutes = %d, want 720", got)
 	}
 }
+
+func TestHasTime(t *testing.T) {
+	cases := map[string]bool{"": false, "  ": false, "00:00:00": true, "08:00:00": true}
+	for in, want := range cases {
+		if got := (Entry{Time: in}).HasTime(); got != want {
+			t.Errorf("HasTime(%q) = %v, want %v", in, got, want)
+		}
+	}
+}
