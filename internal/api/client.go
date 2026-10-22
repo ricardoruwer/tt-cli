@@ -44,7 +44,7 @@ func (c *Client) Month(ctx context.Context, year int, month time.Month) ([]model
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if err != nil {
@@ -97,7 +97,7 @@ func (c *Client) Save(ctx context.Context, date time.Time, u Update) (model.Entr
 	if err != nil {
 		return model.Entry{}, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
 	if err != nil {
