@@ -76,3 +76,33 @@ func TestPrintGrid(t *testing.T) {
 		t.Log("\n" + ansi.Strip(sampleModel(140, 36).render()))
 	}
 }
+
+func TestCellShowsDeploysAndCodeReviews(t *testing.T) {
+	m := sampleModel(280, 40)
+	m.byDay[21] = model.Entry{Time: "08:00:00", Description: "- Work", Deploys: "VIRT-3707", CodeReviews: "VIRT-3700, VIRT-3698"}
+	out := ansi.Strip(m.render())
+	for _, want := range []string{"[VIRT-3707] Deploys", "[VIRT-3700, VIRT-3698] Code Review"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("grid missing %q:\n%s", want, out)
+		}
+	}
+}
+
+func TestSavedNoticeShowsAndClears(t *testing.T) {
+	m := sampleModel(100, 30)
+	m.editing = true
+	next, cmd := m.Update(savedMsg{year: 2026, month: time.October, day: 21})
+	m = next.(Model)
+	if cmd == nil || !strings.Contains(ansi.Strip(m.render()), "✓ Saved") {
+		t.Fatalf("expected notice and clear timer after save")
+	}
+
+	next, _ = m.Update(clearNoticeMsg{id: m.noticeID - 1})
+	if m = next.(Model); m.notice == "" {
+		t.Error("stale clear message removed the notice")
+	}
+	next, _ = m.Update(clearNoticeMsg{id: m.noticeID})
+	if m = next.(Model); m.notice != "" {
+		t.Error("notice should clear")
+	}
+}

@@ -25,6 +25,7 @@ var (
 	colBadgeText = lipgloss.Color("#e0e7ff")
 	colToday     = lipgloss.Color("#6366f1")
 	colError     = lipgloss.Color("#f87171")
+	colSuccess   = lipgloss.Color("#4ade80")
 )
 
 var weekdayNames = []string{"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
@@ -81,6 +82,9 @@ func (m Model) renderTitle() string {
 		" " + lipgloss.NewStyle().Foreground(colDim).Render(fmt.Sprint(m.year))
 	if m.loading {
 		title += lipgloss.NewStyle().Foreground(colDim).Render("  loading…")
+	}
+	if m.notice != "" {
+		title += "  " + lipgloss.NewStyle().Foreground(colSuccess).Bold(true).Render(m.notice)
 	}
 	return title
 }
@@ -182,7 +186,7 @@ func (m Model) renderCell(day calendar.Day, w, h int) []string {
 	lines := []string{finish(head)}
 
 	if hasEntry {
-		descLines := entry.Lines()
+		descLines := cellLines(entry)
 		avail := h - 2
 		if avail > 0 && len(descLines) > avail {
 			hidden := len(descLines) - (avail - 1)
@@ -224,14 +228,14 @@ func (m Model) renderStats() string {
 }
 
 func (m Model) renderHelp() string {
-	help := "←↓↑→/hjkl move · enter details · e edit · t today · r reload · q quit"
+	help := "←↓↑→/hjkl move · p/n month · enter details · e edit · t today · r reload · q quit"
 	switch {
 	case m.editing:
 		help = "tab/shift+tab field · ctrl+s save · esc cancel"
 	case m.detail:
 		help = "j/k scroll · space/pgdn page · g/G top/bottom · e edit · esc back · ctrl+c quit"
 	}
-	return lipgloss.NewStyle().Foreground(colDim).Render(help)
+	return lipgloss.NewStyle().Foreground(colDim).Render(ansi.Truncate(help, m.width, "…"))
 }
 
 // Detail panel.
@@ -294,6 +298,19 @@ func (m Model) renderDetail() string {
 		out = append(out, "")
 	}
 	return strings.Join(out, "\n")
+}
+
+// cellLines is the text shown in a grid cell: the description, followed by the
+// deploys and code reviews as "[KEY, KEY] Label" lines.
+func cellLines(e model.Entry) []string {
+	lines := e.Lines()
+	if d := strings.TrimSpace(e.Deploys); d != "" {
+		lines = append(lines, "["+d+"] Deploys")
+	}
+	if c := strings.TrimSpace(e.CodeReviews); c != "" {
+		lines = append(lines, "["+c+"] Code Review")
+	}
+	return lines
 }
 
 // nonEmpty wraps a trimmed value as a single line, or nothing when it is blank.

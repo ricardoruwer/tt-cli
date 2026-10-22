@@ -18,6 +18,11 @@ type loadedMsg struct {
 	err     error
 }
 
+type clearNoticeMsg struct{ id int }
+
+// noticeDuration is how long the "Saved" confirmation stays on screen.
+const noticeDuration = 3 * time.Second
+
 type Model struct {
 	client   *api.Client
 	year     int
@@ -35,6 +40,9 @@ type Model struct {
 
 	editing bool
 	edit    editor
+
+	notice   string
+	noticeID int
 }
 
 func New(client *api.Client, now time.Time) Model {
@@ -93,6 +101,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.editing = false
 		m.clampScroll()
+		m.noticeID++
+		m.notice = "✓ Saved"
+		return m, clearNoticeAfter(m.noticeID)
+
+	case clearNoticeMsg:
+		// A newer notice owns the timer; ignore the stale one.
+		if msg.id == m.noticeID {
+			m.notice = ""
+		}
 
 	case tea.PasteMsg:
 		return m.handlePaste(msg.String())
@@ -149,15 +166,42 @@ func (m Model) handleKey(key string) (tea.Model, tea.Cmd) {
 		m.detail, m.scroll = true, 0
 	case "e":
 		return m.startEdit(), nil
+	case "p", "pgup":
+		return m.shiftMonth(-1)
+	case "n", "pgdown":
+		return m.shiftMonth(1)
 	case "t":
-		if m.today.Year() == m.year && m.today.Month() == m.month {
-			m.selected = m.nearestWeekday(m.today.Day())
+		if m.today.Year() != m.year || m.today.Month() != m.month {
+			return m.showMonth(m.today.Year(), m.today.Month(), m.today.Day())
 		}
+		m.selected = m.nearestWeekday(m.today.Day())
 	case "r":
 		m.loading, m.err = true, nil
 		return m, m.fetch()
 	}
 	return m, nil
+}
+
+func clearNoticeAfter(id int) tea.Cmd {
+	return tea.Tick(noticeDuration, func(time.Time) tea.Msg { return clearNoticeMsg{id: id} })
+}
+
+// shiftMonth moves the calendar by delta months, keeping the selected day of
+// month when the target month has it.
+func (m Model) shiftMonth(delta int) (Model, tea.Cmd) {
+	target := time.Date(m.year, m.month+time.Month(delta), 1, 0, 0, 0, 0, time.UTC)
+	return m.showMonth(target.Year(), target.Month(), m.selected)
+}
+
+// showMonth switches to the given month and starts loading its entries. The
+// selection lands on day, or the closest weekday when day is not a working
+// day or does not exist in that month.
+func (m Model) showMonth(year int, month time.Month, day int) (Model, tea.Cmd) {
+	m.year, m.month = year, month
+	m.byDay = map[int]model.Entry{}
+	m.loading, m.err = true, nil
+	m.selected = m.nearestWeekday(min(day, calendar.DaysInMonth(year, month)))
+	return m, m.fetch()
 }
 
 func (m Model) isWeekend(day int) bool {

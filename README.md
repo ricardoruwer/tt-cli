@@ -50,13 +50,15 @@ Run `tt`.
 | `h` `j` `k` `l` / arrows | Move the selection (weekends are inactive and skipped) |
 | `enter` | Open the details of the selected day |
 | `e` | Edit the selected day (time, description, code reviews, deploys) |
-| `t` | Jump to today |
+| `p` / `pgup` | Previous month |
+| `n` / `pgdn` | Next month |
+| `t` | Jump to today (switches back to the current month) |
 | `r` | Reload from the server |
 | `q` | Quit (or close the details) |
 
 In the details view: `j`/`k` scroll, `space` pages down, `g`/`G` jump to top/bottom, `e` edits, `esc` goes back.
 
-In the editor: `tab`/`shift+tab` (or `↑`/`↓` at the edges of a field) switch fields, `enter` adds a line in the description and moves to the next field elsewhere, `ctrl+s` saves, `esc` discards. Time accepts `H`, `H:M` or `H:M:S`; leave it empty to clear it. Saving creates the entry when the day has none.
+In the editor: `tab`/`shift+tab` (or `↑`/`↓` at the edges of a field) switch fields, `enter` adds a line in the description and moves to the next field elsewhere, `ctrl+s` saves, `esc` discards. Time accepts `H`, `H:M` or `H:M:S`; leave it empty to clear it. Saving creates the entry when the day has none, and a green "Saved" notice appears next to the month title for a few seconds.
 
 ## Development
 

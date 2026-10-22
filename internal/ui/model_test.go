@@ -1,6 +1,9 @@
 package ui
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestSelectionSkipsWeekends(t *testing.T) {
 	m := sampleModel(100, 30) // October 2026: the 9th is a Friday
@@ -43,5 +46,42 @@ func TestNearestWeekday(t *testing.T) {
 		if got := m.nearestWeekday(day); got != want {
 			t.Errorf("nearestWeekday(%d) = %d, want %d", day, got, want)
 		}
+	}
+}
+
+func TestShiftMonthWrapsYearsAndReloads(t *testing.T) {
+	m := sampleModel(100, 30)
+	m.selected = 21
+
+	m, cmd := m.shiftMonth(3) // January 2027
+	if m.year != 2027 || m.month != time.January || cmd == nil || !m.loading {
+		t.Fatalf("got %d-%d loading=%v cmd=%v", m.year, m.month, m.loading, cmd != nil)
+	}
+	if m.selected != 21 || len(m.byDay) != 0 {
+		t.Errorf("selected=%d entries=%d", m.selected, len(m.byDay))
+	}
+
+	m, _ = m.shiftMonth(-3)
+	if m.year != 2026 || m.month != time.October {
+		t.Errorf("got %d-%d, want 2026-10", m.year, m.month)
+	}
+}
+
+func TestShiftMonthClampsDay(t *testing.T) {
+	m := sampleModel(100, 30)
+	m.selected = 30
+	m, _ = m.shiftMonth(4) // February 2027 has 28 days; the 28th is a Sunday
+	if m.selected != 26 {
+		t.Errorf("selected = %d, want Friday 26", m.selected)
+	}
+}
+
+func TestTodayReturnsToCurrentMonth(t *testing.T) {
+	m := sampleModel(100, 30)
+	m, _ = m.shiftMonth(2)
+	next, cmd := m.handleKey("t")
+	m = next.(Model)
+	if m.month != time.October || m.year != 2026 || m.selected != 21 || cmd == nil {
+		t.Errorf("got %d-%d day %d", m.year, m.month, m.selected)
 	}
 }
